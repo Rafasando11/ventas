@@ -1,0 +1,56 @@
+import pandas as pd
+import numpy as np
+
+# Configuración para ver todas las columnas
+pd.set_option('display.max_columns', None)
+# Carga de datos con rutas absolutas
+df_ventas = pd.read_csv('/workspace/ventas.csv')
+df_inventarios = pd.read_csv('/workspace/inventarios.csv')
+df_satisfaccion = pd.read_csv('/workspace/satisfaccion.csv')
+
+# Limpieza de datos: eliminar filas con valores nulos
+df_ventas = df_ventas.dropna()
+df_inventarios = df_inventarios.dropna()
+df_satisfaccion = df_satisfaccion.dropna()
+
+print("Datos cargados y limpiados correctamente.")
+# Calcular ingresos totales por registro (Cantidad * Precio)
+# Nota: Ajusta los nombres de las columnas según tus CSV (ej: 'Cantidad', 'Precio_Unitario')
+df_ventas['Ingresos_Totales'] = df_ventas['Cantidad'] * df_ventas['Precio_Unitario']
+
+# Ventas totales por tienda
+ventas_por_tienda = df_ventas.groupby('Tienda')['Ingresos_Totales'].sum()
+
+# Resumen estadístico
+resumen_ventas = df_ventas['Ingresos_Totales'].describe()
+print("Resumen estadístico de ventas:\n", resumen_ventas)
+# Unir ventas con inventarios para calcular rotación
+# Asumiendo que ambos tienen la columna 'Tienda' y 'Producto'
+df_inv_analisis = pd.merge(df_inventarios, ventas_por_tienda, on='Tienda')
+
+# Calcular rotación: (Ventas Totales / Stock Disponible)
+df_inv_analisis['Rotacion'] = df_inv_analisis['Ingresos_Totales'] / df_inv_analisis['Stock_Disponible']
+
+# Filtrar niveles críticos: (Ventas < 10% del Stock)
+criticos = df_inv_analisis[df_inv_analisis['Ingresos_Totales'] < (df_inv_analisis['Stock_Disponible'] * 0.10)]
+print("Tiendas con niveles críticos de inventario:\n", criticos[['Tienda', 'Stock_Disponible']])
+# Filtrar tiendas con satisfacción menor al 60%
+baja_satisfaccion = df_satisfaccion[df_satisfaccion['Nivel_Satisfaccion'] < 60]
+
+print("Tiendas con baja satisfacción (<60%):\n", baja_satisfaccion)
+# Recomendación: Realizar auditoría de servicio al cliente y tiempos de espera en estas sucursales.
+# Convertir columna de ventas a array de Numpy
+ventas_array = df_ventas['Ingresos_Totales'].to_numpy()
+
+# Cálculos estadísticos con Numpy
+mediana_ventas = np.median(ventas_array)
+std_ventas = np.std(ventas_array)
+
+print(f"Mediana de ventas: {mediana_ventas}")
+print(f"Desviación estándar de ventas: {std_ventas}")
+
+# Simulación de proyecciones de ventas futuras
+np.random.seed(42) # Semilla para reproducibilidad
+proyeccion_futura = np.random.normal(loc=mediana_ventas, scale=std_ventas, size=10)
+
+print("Simulación de ventas para los próximos 10 periodos:\n", proyeccion_futura)
