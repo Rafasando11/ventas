@@ -34,6 +34,7 @@ df_inv_analisis['Rotacion'] = df_inv_analisis['Ingresos_Totales'] / df_inv_anali
 # Filtrar niveles críticos: (Ventas < 10% del Stock)
 criticos = df_inv_analisis[df_inv_analisis['Ingresos_Totales'] < (df_inv_analisis['Stock_Disponible'] * 0.10)]
 print("Tiendas con niveles críticos de inventario:\n", criticos[['Tienda', 'Stock_Disponible']])
+
 # Filtrar tiendas con satisfacción menor al 60%
 baja_satisfaccion = df_satisfaccion[df_satisfaccion['Nivel_Satisfaccion'] < 60]
 
